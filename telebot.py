@@ -476,8 +476,8 @@ async def support(update: Update, context: ContextTypes.DEFAULT_TYPE):
 4. Need to install extension? Use /installextension
 
 *Contact:*
-• Telegram: @YourUsername
-• Email: support@example.com
+• Telegram: @physki
+• Email: izzychee1011@gmail.com
 
 *Resources:*
 • Installation guide: /installextension
