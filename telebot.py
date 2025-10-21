@@ -19,6 +19,10 @@ from telegram.ext import (
 import logging
 import json
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Setup logging
 logging.basicConfig(
@@ -27,7 +31,6 @@ logging.basicConfig(
 )
 
 # Load bot token from environment variable for security
-import os
 BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 if not BOT_TOKEN:
     raise ValueError("Please set the TELEGRAM_BOT_TOKEN environment variable")
