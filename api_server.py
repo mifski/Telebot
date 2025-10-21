@@ -11,6 +11,14 @@ from flask_cors import CORS
 import json
 import os
 import requests
+import logging
+
+# Setup logging
+logging.basicConfig(
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    level=logging.DEBUG
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)  # Allow requests from Chrome extension
@@ -49,47 +57,65 @@ def get_user_config(user_id):
 def send_video():
     """Receive video from extension and post to Telegram"""
     try:
+        logger.debug(f"Received request to /api/send-video")
+        logger.debug(f"Request data: {request.json}")
+        
         data = request.json
         channel_id = data.get('channel_id')
         user_id = data.get('user_id')
         message = data.get('message')
         
+        logger.info(f"Processing video for user {user_id} to channel {channel_id}")
+        
         if not channel_id or not message:
+            logger.error(f"Missing required fields - channel_id: {channel_id}, message: {bool(message)}")
             return jsonify({
                 "success": False,
                 "error": "Missing channel_id or message"
             }), 400
         
         if not BOT_TOKEN:
+            logger.error("Bot token not configured!")
             return jsonify({
                 "success": False,
                 "error": "Bot token not configured on server"
             }), 500
         
+        logger.debug(f"Bot token found: {BOT_TOKEN[:10]}...")
+        
         # Send message to Telegram
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        logger.debug(f"Sending to Telegram: {url}")
         
-        response = requests.post(url, json={
+        payload = {
             "chat_id": channel_id,
             "text": message,
             "parse_mode": "Markdown",
             "disable_web_page_preview": False
-        })
+        }
+        logger.debug(f"Payload: {payload}")
         
+        response = requests.post(url, json=payload)
         result = response.json()
         
+        logger.debug(f"Telegram response: {result}")
+        
         if result.get('ok'):
+            logger.info(f"✅ Message sent successfully to {channel_id}")
             return jsonify({
                 "success": True,
                 "message": "Video posted successfully"
             })
         else:
+            error_desc = result.get('description', 'Unknown error')
+            logger.error(f"❌ Telegram error: {error_desc}")
             return jsonify({
                 "success": False,
-                "error": result.get('description', 'Unknown error')
+                "error": error_desc
             }), 400
             
     except Exception as e:
+        logger.error(f"❌ Exception in send_video: {str(e)}", exc_info=True)
         return jsonify({
             "success": False,
             "error": str(e)
