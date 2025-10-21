@@ -37,6 +37,7 @@ WAITING_FOR_FORMAT, WAITING_FOR_EMOJI = range(2)
 
 # File to store user configurations
 CONFIG_FILE = "user_configs.json"
+CHANNELS_NOTIFIED_FILE = "channels_notified.json"
 
 # Load/Save configurations
 def load_configs():
@@ -50,6 +51,31 @@ def save_configs(configs):
     """Save user configurations to file"""
     with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
         json.dump(configs, f, indent=2, ensure_ascii=False)
+
+def load_notified_channels():
+    """Load list of channels already notified"""
+    if os.path.exists(CHANNELS_NOTIFIED_FILE):
+        with open(CHANNELS_NOTIFIED_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
+
+def save_notified_channels(channels):
+    """Save list of notified channels"""
+    with open(CHANNELS_NOTIFIED_FILE, 'w', encoding='utf-8') as f:
+        json.dump(channels, f, indent=2, ensure_ascii=False)
+
+def is_channel_notified(chat_id):
+    """Check if channel was already notified"""
+    channels = load_notified_channels()
+    return str(chat_id) in channels
+
+def mark_channel_notified(chat_id):
+    """Mark channel as notified"""
+    channels = load_notified_channels()
+    chat_id_str = str(chat_id)
+    if chat_id_str not in channels:
+        channels.append(chat_id_str)
+        save_notified_channels(channels)
 
 # Global config storage
 user_configs = load_configs()
@@ -350,10 +376,15 @@ Use it in the Chrome extension settings!
     await update.message.reply_text(instruction_text, parse_mode='Markdown')
 
 async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Detect when bot is added to a channel and show ID"""
+    """Detect when bot is added to a channel and show ID (only once per channel)"""
     if update.channel_post:
         chat_id = update.channel_post.chat.id
         chat_title = update.channel_post.chat.title
+        
+        # Check if we already notified this channel
+        if is_channel_notified(chat_id):
+            logging.info(f"Channel {chat_id} already notified, skipping")
+            return
         
         await context.bot.send_message(
             chat_id=chat_id,
@@ -363,6 +394,10 @@ async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE
                  f"Copy this ID and paste it in your Chrome extension settings!",
             parse_mode='Markdown'
         )
+        
+        # Mark this channel as notified
+        mark_channel_notified(chat_id)
+        logging.info(f"Sent notification to channel {chat_id}")
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Cancel the conversation"""
