@@ -423,17 +423,27 @@ async def download_extension(update: Update, context: ContextTypes.DEFAULT_TYPE)
     user_id = update.effective_user.id
     
     try:
-        # Path to your extension ZIP file
-        extension_zip_path = "chrome_extension.zip"  # Change this to your ZIP file name
+        # Try to find the extension ZIP file
+        extension_files = [
+            "chrome_extension.zip",
+            "chrome_extension.zip.zip",
+            "extension.zip"
+        ]
+        
+        extension_zip_path = None
+        for filename in extension_files:
+            if os.path.exists(filename):
+                extension_zip_path = filename
+                break
         
         # Check if file exists
-        if not os.path.exists(extension_zip_path):
+        if extension_zip_path is None:
             await update.message.reply_text(
                 "❌ *Error:*\n\n"
                 "Extension file not found. Please contact support.",
                 parse_mode='Markdown'
             )
-            logging.warning(f"Extension ZIP file not found at {extension_zip_path}")
+            logging.warning(f"Extension ZIP file not found")
             return
         
         # Send the file
@@ -444,7 +454,7 @@ async def download_extension(update: Update, context: ContextTypes.DEFAULT_TYPE)
             parse_mode='Markdown'
         )
         
-        logging.info(f"User {user_id} downloaded the extension")
+        logging.info(f"User {user_id} downloaded the extension from {extension_zip_path}")
         
     except Exception as e:
         await update.message.reply_text(
