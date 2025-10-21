@@ -102,7 +102,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 *📚 Complete Guide*
 
 *Step 1: Setup*
-1. Install Chrome extension
+1. Install Chrome extension (/installextension)
 2. Create a Telegram channel
 3. Add this bot as admin (with "Post Messages")
 4. Use /getchannelid to get your channel ID
@@ -126,6 +126,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /reset - Reset to default settings
 
 *Utility Commands:*
+/installextension - How to install Chrome extension
 /getchannelid - Get your channel ID
 /help - Show this message
 /support - Contact support
@@ -369,6 +370,49 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return ConversationHandler.END
 
+async def install_extension(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Provide instructions for installing the Chrome extension"""
+    install_text = """
+*🔧 Install Chrome Extension*
+
+*Step 1: Download Extension*
+1. Download the extension ZIP file
+2. Extract it to a folder on your computer
+
+*Step 2: Open Chrome Extensions Page*
+1. Open Chrome browser
+2. Copy this in the address bar: `chrome://extensions/`
+3. Press Enter
+
+*Step 3: Enable Developer Mode*
+1. Look for "Developer mode" toggle (top right)
+2. Click to turn it ON
+
+*Step 4: Load Extension*
+1. Click "Load unpacked" button
+2. Navigate to where you extracted the ZIP file
+3. Select the folder and click "Select Folder"
+
+*Step 5: Verify Installation*
+1. Look for the extension icon in Chrome toolbar
+2. It should appear as a puzzle piece icon
+3. Pin it to your toolbar for easy access
+
+*Step 6: Configure Extension*
+1. Click the extension icon
+2. Enter your Telegram Channel ID
+3. Save settings
+
+*Note:*
+If you don't know your Channel ID, use /getchannelid first!
+
+*Troubleshooting:*
+• Extension not showing? Go to chrome://extensions and ensure it's enabled
+• Want to reload? Click the refresh icon on the extension card
+• Still issues? Use /support for help
+    """
+    await update.message.reply_text(install_text, parse_mode='Markdown')
+
 async def support(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send support information"""
     support_text = """
@@ -378,15 +422,16 @@ async def support(update: Update, context: ContextTypes.DEFAULT_TYPE):
 1. Bot not posting? Check it's admin with "Post Messages"
 2. Extension not working? Reload it from chrome://extensions
 3. Wrong channel ID? Use /getchannelid
+4. Need to install extension? Use /installextension
 
 *Contact:*
 • Telegram: @YourUsername
 • Email: support@example.com
 
 *Resources:*
-• Installation guide: [link]
-• Video tutorial: [link]
-• GitHub: [link]
+• Installation guide: /installextension
+• All commands: /help
+• Get channel ID: /getchannelid
     """
     await update.message.reply_text(support_text, parse_mode='Markdown')
 
@@ -408,6 +453,7 @@ def main():
         application.add_handler(CommandHandler("myconfig", my_config))
         application.add_handler(CommandHandler("reset", reset_config))
         application.add_handler(CommandHandler("getchannelid", get_channel_id))
+        application.add_handler(CommandHandler("installextension", install_extension))
         application.add_handler(CommandHandler("support", support))
     except Exception as e:
         print(f"ERROR: Failed to start the bot: {str(e)}")
