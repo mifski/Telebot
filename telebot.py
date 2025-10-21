@@ -102,11 +102,12 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 *📚 Complete Guide*
 
 *Step 1: Setup*
-1. Install Chrome extension (/installextension)
-2. Create a Telegram channel
-3. Add this bot as admin (with "Post Messages")
-4. Use /getchannelid to get your channel ID
-5. Enter channel ID in extension
+1. Use /downloadextension to get the Chrome extension
+2. Use /installextension for detailed installation steps
+3. Create a Telegram channel
+4. Add this bot as admin (with "Post Messages")
+5. Use /getchannelid to get your channel ID
+6. Enter channel ID in extension
 
 *Step 2: Customize (Optional)*
 • /setformat - Change your message format
@@ -126,7 +127,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /reset - Reset to default settings
 
 *Utility Commands:*
-/installextension - How to install Chrome extension
+/downloadextension - Download Chrome extension ZIP
+/installextension - Installation instructions
 /getchannelid - Get your channel ID
 /help - Show this message
 /support - Contact support
@@ -376,7 +378,7 @@ async def install_extension(update: Update, context: ContextTypes.DEFAULT_TYPE):
 *🔧 Install Chrome Extension*
 
 *Step 1: Download Extension*
-1. Download the extension ZIP file
+1. Use /downloadextension to get the ZIP file
 2. Extract it to a folder on your computer
 
 *Step 2: Open Chrome Extensions Page*
@@ -403,6 +405,9 @@ async def install_extension(update: Update, context: ContextTypes.DEFAULT_TYPE):
 2. Enter your Telegram Channel ID
 3. Save settings
 
+*Quick Download:*
+Use /downloadextension to get your ZIP file right now!
+
 *Note:*
 If you don't know your Channel ID, use /getchannelid first!
 
@@ -412,6 +417,42 @@ If you don't know your Channel ID, use /getchannelid first!
 • Still issues? Use /support for help
     """
     await update.message.reply_text(install_text, parse_mode='Markdown')
+
+async def download_extension(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Send the Chrome extension ZIP file to user"""
+    user_id = update.effective_user.id
+    
+    try:
+        # Path to your extension ZIP file
+        extension_zip_path = "chrome_extension.zip"  # Change this to your ZIP file name
+        
+        # Check if file exists
+        if not os.path.exists(extension_zip_path):
+            await update.message.reply_text(
+                "❌ *Error:*\n\n"
+                "Extension file not found. Please contact support.",
+                parse_mode='Markdown'
+            )
+            logging.warning(f"Extension ZIP file not found at {extension_zip_path}")
+            return
+        
+        # Send the file
+        await update.message.reply_document(
+            document=open(extension_zip_path, 'rb'),
+            caption="📦 *Your Chrome Extension*\n\n"
+                   "Use /installextension for detailed installation instructions!",
+            parse_mode='Markdown'
+        )
+        
+        logging.info(f"User {user_id} downloaded the extension")
+        
+    except Exception as e:
+        await update.message.reply_text(
+            f"❌ *Error sending file:*\n\n{str(e)}\n\n"
+            "Please try again or contact /support",
+            parse_mode='Markdown'
+        )
+        logging.error(f"Error sending extension to user {user_id}: {str(e)}")
 
 async def support(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send support information"""
@@ -454,6 +495,7 @@ def main():
         application.add_handler(CommandHandler("reset", reset_config))
         application.add_handler(CommandHandler("getchannelid", get_channel_id))
         application.add_handler(CommandHandler("installextension", install_extension))
+        application.add_handler(CommandHandler("downloadextension", download_extension))
         application.add_handler(CommandHandler("support", support))
     except Exception as e:
         print(f"ERROR: Failed to start the bot: {str(e)}")
