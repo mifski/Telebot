@@ -22,7 +22,7 @@ The errors you mentioned are **NOT from our extension**:
    - **Channel ID**: `-1001234567890` (your actual channel ID)
    - **User ID**: `123456789` (your numeric user ID from @userinfobot)
 3. Click "Save Configuration"
-4. Click "Start Monitoring"
+4. Click "start listening"
 
 ### Step 3: Open YouTube
 1. Go to https://www.youtube.com/watch?v=dQw4w9WgXcQ

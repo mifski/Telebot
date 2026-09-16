@@ -52,7 +52,7 @@ python api_server.py
 
 ## Step 5: Test
 
-1. Click "Start Monitoring"
+1. Click "start listening"
 2. Go to YouTube and play any video
 3. Wait 3 seconds
 4. Check your Telegram channel - should see the video message!

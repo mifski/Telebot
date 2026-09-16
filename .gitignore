@@ -7,4 +7,6 @@ dist/
 build/
 .env
 user_configs.json
+user_configs.json.tmp
+channels_notified.json
 .DS_Store

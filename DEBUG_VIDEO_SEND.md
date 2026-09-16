@@ -8,7 +8,7 @@
 4. Verify:
    - ✅ Channel ID is filled in (should be `-1002568728245`)
    - ✅ User ID is filled in (numeric, from @userinfobot)
-   - ✅ "Start Monitoring" button was clicked
+   - ✅ "start listening" button was clicked
 
 ## Step 2: Check Service Worker Logs
 
@@ -17,7 +17,7 @@
 3. Click **"Service Worker"** link (under the extension name)
 4. This opens the background script console
 5. Look for ANY logs - you should see:
-   - `Session started` when you click Start Monitoring
+   - `Session started` when you click start listening
    - `Processing video: [title]` when a video plays
    - `✅ Video sent to Telegram` if it worked
    - OR `Error sending video:` if something failed
@@ -85,7 +85,7 @@ Look at the terminal running `python telebot.py`:
 1. **Open chrome://extensions/**
 2. **Reload "YouTube to Telegram" extension**
 3. **Click the extension icon and confirm config is saved**
-4. **Click "Start Monitoring"**
+4. **Click "start listening"**
 5. **Open DevTools in YouTube (F12)**
 6. **Go to Console tab**
 7. **Play any YouTube video**

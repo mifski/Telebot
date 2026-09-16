@@ -1,203 +1,116 @@
-# 🚀 Deployment Guide
+# 🚀 Put the bot online (so you never run it locally)
 
-Choose one of these free deployment options:
+Right now `python telebot.py` only works while your computer is on. Deploy it once and
+it runs 24/7 — your computer can be closed, asleep, or on the other side of the world,
+and your videos still get posted.
 
-## Option 1: Railway (Recommended - Easiest) ⭐
+Everything runs in **one process** (`python telebot.py` starts both the bot and the
+extension API), so any host that runs a long-lived Python process works.
 
-### Step 1: Prepare Your Code
-1. Create a GitHub account at https://github.com
-2. Create a new repository named "Telebot"
-3. Push your code:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git remote add origin https://github.com/YOUR_USERNAME/Telebot.git
-   git push -u origin main
-   ```
-
-### Step 2: Deploy on Railway
-1. Go to https://railway.app
-2. Click "New Project"
-3. Select "Deploy from GitHub repo"
-4. Search for "Telebot" repository
-5. Click "Deploy"
-
-### Step 3: Configure Environment Variables
-1. In Railway dashboard, go to "Variables"
-2. Add new variable:
-   - **Key:** `TELEGRAM_BOT_TOKEN`
-   - **Value:** Your bot token from @BotFather
-3. Add another variable:
-   - **Key:** `ENVIRONMENT`
-   - **Value:** `production`
-
-### Step 4: Get Your URLs
-- Railway assigns a public URL to your app
-- Your API will be at: `https://your-railway-url.up.railway.app/api/config/{user_id}`
-- Update your Chrome extension to use this URL
+**One rule:** only one copy of the bot may run at a time. Once it's deployed, stop the one
+on your computer — otherwise Telegram returns "Conflict: terminated by other getUpdates request".
 
 ---
 
-## Option 2: Heroku (Free Tier Discontinued - Not Recommended)
+## Railway (recommended, ~5 minutes)
 
-Heroku no longer offers free tier. Use Railway instead.
-
----
-
-## Option 3: PythonAnywhere (Easy for Beginners)
-
-### Step 1: Create Account
-1. Go to https://www.pythonanywhere.com
-2. Sign up (free account available)
-
-### Step 2: Upload Files
-1. Go to "Files" tab
-2. Upload all files from your Telebot folder
-
-### Step 3: Create Web App
-1. Go to "Web" tab
-2. Click "Add a new web app"
-3. Choose Flask
-4. Set the path to your `api_server.py`
-
-### Step 4: Set Environment Variables
-1. Edit `api_server.py`
-2. Add at the top:
-   ```python
-   import os
-   os.environ['TELEGRAM_BOT_TOKEN'] = 'your_token_here'
-   ```
-
-### Step 5: Create Console Task for Bot
-1. Go to "Tasks" tab
-2. Create new scheduled task
-3. Command: `python /path/to/telebot.py`
-4. Frequency: Run every hour (keeps it alive)
-
----
-
-## Option 4: AWS (Free Tier for 12 Months)
-
-### Using AWS Lambda (Serverless)
-
-1. Create AWS account at https://aws.amazon.com/free
-2. Go to Lambda service
-3. Create function:
-   - Runtime: Python 3.11
-   - Upload code as ZIP
-
-4. Set environment variables:
-   - `TELEGRAM_BOT_TOKEN`: Your token
-
-5. Configure API Gateway for Flask API
-
----
-
-## Option 5: Google Cloud Run (Free Tier Available)
-
-### Step 1: Prepare Dockerfile
-Create a `Dockerfile` in your project:
-
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-
-ENV FLASK_APP=api_server.py
-ENV TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-
-CMD exec gunicorn --bind :$PORT --workers 1 api_server:app & python telebot.py
-```
-
-### Step 2: Deploy
+### 1. Push your code to GitHub
 ```bash
-gcloud run deploy telebot --source .
+git add . && git commit -m "Ready to deploy" && git push
+```
+`.env`, `user_configs.json` and `channels_notified.json` are in `.gitignore`, so your
+token and everyone's codes stay off GitHub.
+
+### 2. Create the project
+Go to [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo** →
+pick this repository. Railway reads the `Procfile` (`web: python telebot.py`) and starts it.
+
+### 3. Add a volume (do this before anyone connects!)
+Settings → **Volumes** → mount a volume at `/data`.
+
+Without it, `user_configs.json` is wiped on every deploy and everybody has to reconnect
+from scratch. This is the step people skip and regret.
+
+### 4. Set variables (Variables tab)
+
+| Key | Value |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | your token from @BotFather |
+| `DATA_DIR` | `/data` |
+
+### 5. Generate a public URL
+Settings → Networking → **Generate Domain**.
+
+You'll get something like `https://telebot-production-a1b2.up.railway.app`.
+Open it in a browser — you should see a soft pink "I'm awake and listening" page.
+(`/api/health` returns `{"status": "ok"}` if you prefer JSON.)
+
+You do **not** need to set `PUBLIC_URL` — Railway tells the bot its own domain
+automatically, and the bot bakes that address into every extension it hands out.
+
+### 6. Stop your local copy
+Close the terminal running `python telebot.py` on your computer. Done — it's live.
+
+### 7. Get the extension again
+In Telegram, send **/downloadextension**. The bot builds a fresh zip that already points
+at your Railway URL, so there is nothing to type in. Install it
+(see /installextension), paste your /connect code, and you're finished.
+
+> Already had the old extension installed? Reinstall it from the new zip, or open the
+> popup → **advanced** → paste your Railway URL → **save & connect**.
+
+---
+
+## Other hosts
+
+Any always-on VPS, Raspberry Pi, or old laptop works too:
+
+```bash
+pip install -r requirements.txt
+TELEGRAM_BOT_TOKEN=... PORT=8080 PUBLIC_URL=https://your-domain.example python telebot.py
 ```
 
----
+- **Render** — works the same way; `RENDER_EXTERNAL_URL` is picked up automatically.
+  Avoid the free web tier: it sleeps when idle, and a sleeping bot posts nothing.
+- **Fly.io** — `FLY_APP_NAME` is picked up automatically. Attach a volume for `DATA_DIR`.
+- **Your own VPS** — set `PUBLIC_URL` yourself and put it behind HTTPS (Caddy or nginx).
+  The extension can only talk to `https://` addresses, or `localhost` for testing.
 
-## Recommended Option: Railway ✅
-
-**Why Railway?**
-- ✅ Easiest setup
-- ✅ Free tier available
-- ✅ GitHub integration
-- ✅ Environment variables simple
-- ✅ Good for beginners
-- ✅ Automatic redeployment on code push
-
-**Total Setup Time:** ~5 minutes
+**Won't work:** anything that sleeps when idle or runs briefly on request — free web tiers,
+AWS Lambda, Cloud Run. The bot has to stay connected to Telegram to hear your commands.
 
 ---
 
-## After Deployment
+## Environment variables
 
-### Update Chrome Extension
-1. Open your extension settings
-2. Change API URL from `http://localhost:5000` to your deployed URL:
-   - Railway: `https://your-railway-url.up.railway.app`
-   - PythonAnywhere: `https://yourusername.pythonanywhere.com`
-   - Google Cloud Run: `https://telebot-xxxxx.run.app`
+| Variable | Default | Purpose |
+|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | — | **Required.** Your token from @BotFather |
+| `DATA_DIR` | project folder | Where settings live. Point at a volume (e.g. `/data`) when deployed |
+| `PUBLIC_URL` | auto-detected, else `http://localhost:5000` | The address baked into the extension |
+| `PORT` | `5000` | Port the extension API listens on (hosts set this for you) |
+| `HOST` | `127.0.0.1` locally, `0.0.0.0` when `PORT` is set | Interface to listen on |
 
-### Test Your Bot
-1. Find your bot on Telegram
-2. Send `/start`
-3. Try `/help` to see all commands
-4. Test `/setformat` and `/setemoji`
-
-### Monitor Your Bot
-- Check server logs for errors
-- Monitor resource usage
-- Keep bot token secret!
+`PUBLIC_URL` is detected from `RAILWAY_PUBLIC_DOMAIN`, `RENDER_EXTERNAL_URL` or
+`FLY_APP_NAME` when you don't set it. Set it by hand on any other host.
 
 ---
 
-## Important Notes
+## If something's off
 
-⚠️ **Security:**
-- Never commit your `TELEGRAM_BOT_TOKEN` to GitHub
-- Always use environment variables
-- Keep your token secret!
-
-⚠️ **Rate Limits:**
-- Telegram allows ~30 messages per second
-- Add rate limiting for production
-
-⚠️ **Uptime:**
-- Free tiers may have limited uptime
-- Consider paid tier for production
+| What you see | What's happening |
+|---|---|
+| Bot ignores every command | Two copies are running. Stop the local one. |
+| "can't reach the bot at …" in the popup | Wrong URL, or the host is asleep. Open the URL in a browser to check. |
+| Everyone had to reconnect after a deploy | No volume mounted, or `DATA_DIR` isn't set to it. |
+| Extension worked locally, not deployed | It's an old zip with `localhost` inside. Send /downloadextension again. |
 
 ---
 
-## Troubleshooting Deployment
+## Security notes
 
-### "ModuleNotFoundError"
-- Make sure `requirements.txt` is in root directory
-- Deployment should auto-install from it
-
-### "Bot not responding"
-- Check if `TELEGRAM_BOT_TOKEN` environment variable is set
-- Check server logs for errors
-- Restart the deployment
-
-### "API 404 Not Found"
-- Check your API URL is correct
-- Make sure `api_server.py` is deployed
-- Check CORS settings in Flask
-
-### "Port already in use"
-- Most platforms assign PORT via environment variable
-- Our code handles this automatically
-
----
-
-**Need Help?**
-- Railway Docs: https://docs.railway.app
-- PythonAnywhere Docs: https://www.pythonanywhere.com/help/
-- Google Cloud Run: https://cloud.google.com/run/docs
+- Never commit your bot token — `.env` locally, host variables when deployed
+- Each user's extension authenticates with their `/connect` code; `/newcode` revokes a leaked one
+- A channel can only be connected by one of its admins (by adding the bot, or via `/setchannel`, which checks)
+- The extension requests `https://*/*` so it can reach whatever host you deploy to; it only
+  ever contacts the one URL configured in its popup

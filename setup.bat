@@ -15,15 +15,20 @@ if errorlevel 1 (
 )
 
 REM Create virtual environment
-echo Creating virtual environment...
-python -m venv .venv
-
-REM Activate virtual environment
-call .venv\Scripts\activate.bat
+if not exist .venv (
+    echo Creating virtual environment...
+    python -m venv .venv
+)
 
 REM Install requirements
 echo Installing dependencies...
-pip install -r requirements.txt
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+REM Create .env from the example if it doesn't exist yet
+if not exist .env (
+    copy .env.example .env >nul
+    echo Created .env - open it and paste your bot token from @BotFather
+)
 
 echo.
 echo ========================================
@@ -31,15 +36,12 @@ echo Setup Complete!
 echo ========================================
 echo.
 echo Next steps:
-echo 1. Set your bot token:
-echo    set TELEGRAM_BOT_TOKEN=your_token_here
+echo 1. Put your bot token in .env  (TELEGRAM_BOT_TOKEN=...)
 echo.
-echo 2. Run the bot:
-echo    python telebot.py
+echo 2. Run the bot (this also starts the API for the extension):
+echo    .venv\Scripts\python.exe telebot.py
 echo.
-echo 3. In another terminal, run the API:
-echo    python api_server.py
-echo.
-echo For deployment, see DEPLOYMENT.md
+echo 3. Want it running 24/7 without your computer on?
+echo    See DEPLOYMENT.md - about 5 minutes on Railway.
 echo.
 pause

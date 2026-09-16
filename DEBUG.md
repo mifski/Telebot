@@ -1,5 +1,10 @@
 # 🔧 Debugging Guide - Videos Not Sending
 
+> ℹ️ This guide assumes you're running the bot locally for development.
+> If your bot is deployed (see [DEPLOYMENT.md](DEPLOYMENT.md)), swap
+> `http://localhost:5000` for your public URL, and check the host's logs
+> instead of your terminal.
+
 ## Step 1: Check Bot Server is Running
 
 ```bash
@@ -87,7 +92,7 @@ If you don't see this, extension isn't calling the API.
 2. Check values are saved:
    - Channel ID: `-100256872824...`
    - User ID: `123456789` (numeric!)
-3. Click "Start Monitoring"
+3. Click "start listening"
 4. Play YouTube video
 
 **If error:** "Please save your configuration first"

@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube to Telegram ♡",
+  "version": "2.1",
+  "description": "Softly whispers the YouTube videos you play into your Telegram channel (｡•ᴗ•｡)♡",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "https://*/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
